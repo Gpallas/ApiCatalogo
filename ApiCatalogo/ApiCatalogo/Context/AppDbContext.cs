@@ -10,7 +10,7 @@ namespace ApiCatalogo.Context
             
         }
 
-        public DbSet<Categoria> Categorias;
-        public DbSet<Produto> Produtos;
+        public DbSet<Categoria>? Categorias;
+        public DbSet<Produto>? Produtos;
     }
 }

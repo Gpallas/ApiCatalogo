@@ -19,13 +19,15 @@ namespace ApiCatalogo.Controllers
         [HttpGet("produtos")]
         public ActionResult<IEnumerable<Categoria>> GetCategoriasProdutos()
         {
-            return _context.Categorias.Include(p => p.Produtos).ToList();
+            //Nunca retornar objetos relacionados sem usar algum filtro (where, nesse caso)
+            return _context.Categorias.Include(p => p.Produtos).Where(c => c.CategoriaId <= 5).ToList();
         }
 
         [HttpGet]
         public ActionResult<IEnumerable<Categoria>> Get()
         {
-            return _context.Categorias.ToList();
+            //Usar AsNoTracking pra consultas somente de leitura melhora o desempenho por não guardar em cache
+            return _context.Categorias.AsNoTracking().ToList();
         }
 
         [HttpGet("{id:int}", Name = "ObterCategoria")]

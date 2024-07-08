@@ -19,7 +19,8 @@ namespace ApiCatalogo.Controllers
         [HttpGet]
         public ActionResult<IEnumerable<Produto>> Get()
         {
-            var produtos = _context.Produtos.ToList();
+            //Nunca retornar todos os registros numa consulta (take(10), nesse caso)
+            var produtos = _context.Produtos.Take(10).ToList();
 
             if (produtos is null)
             {

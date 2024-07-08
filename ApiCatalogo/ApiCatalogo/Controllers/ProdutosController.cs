@@ -16,6 +16,26 @@ namespace ApiCatalogo.Controllers
             _context = context;
         }
 
+        [HttpGet("primeiro")]
+        public ActionResult<Produto> GetPrimeiro()
+        {
+            try
+            {
+                var produto = _context.Produtos.First();
+
+                if (produto is null)
+                {
+                    return NotFound("Não há produtos");
+                }
+
+                return Ok(produto);
+            }
+            catch (Exception)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, "Ocorreu um erro no servidor");
+            }
+        }
+
         [HttpGet]
         public ActionResult<IEnumerable<Produto>> Get()
         {

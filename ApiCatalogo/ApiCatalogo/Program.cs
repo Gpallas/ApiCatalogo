@@ -1,6 +1,7 @@
 using ApiCatalogo.Context;
 using ApiCatalogo.Extensions;
 using ApiCatalogo.Filters;
+using ApiCatalogo.Logging;
 using ApiCatalogo.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -32,6 +33,11 @@ var valor2 = builder.Configuration["secao1:chave1"];*/
 {
     option.DisableImplicitFromServicesParameters = true;
 });*/
+
+builder.Logging.AddProvider(new CustomLoggerProvider(new CustomLoggerProviderConfiguration()
+{
+    LogLevel = LogLevel.Information
+}));
 
 var app = builder.Build();
 

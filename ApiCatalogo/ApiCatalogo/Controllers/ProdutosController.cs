@@ -17,6 +17,7 @@ namespace ApiCatalogo.Controllers
         }
 
         [HttpGet("primeiro")]
+        [HttpGet("/primeiro")]
         public ActionResult<Produto> GetPrimeiro()
         {
             try
@@ -50,6 +51,26 @@ namespace ApiCatalogo.Controllers
                 }
 
                 return produtos;
+            }
+            catch (Exception)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, "Ocorreu um erro no servidor");
+            }
+        }
+
+        [HttpGet("{id:int}/{nome}")]
+        public ActionResult<Produto> Get(int id, string nome)
+        {
+            try
+            {
+                var produto = _context.Produtos.FirstOrDefault(p => p.ProdutoId == id && p.Nome == nome);
+
+                if (produto is null)
+                {
+                    return NotFound("Produto não encontrado");
+                }
+
+                return produto;
             }
             catch (Exception)
             {

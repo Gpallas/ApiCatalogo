@@ -1,4 +1,5 @@
-﻿using System.Collections.ObjectModel;
+﻿using ApiCatalogo.Validations;
+using System.Collections.ObjectModel;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
@@ -15,6 +16,7 @@ namespace ApiCatalogo.Models
         public int CategoriaId { get; set; }
         [Required]
         [StringLength(80)]
+        [PrimeiraLetraMaiuscula]
         public string? Nome { get; set; }
         [Required]
         [StringLength(300)]

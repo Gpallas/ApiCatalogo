@@ -14,10 +14,12 @@ namespace ApiCatalogo.Controllers
     {
         private readonly AppDbContext _context;
         private readonly IConfiguration _configuration;
-        public CategoriasController(AppDbContext context, IConfiguration configuration)
+        private readonly ILogger _logger;
+        public CategoriasController(AppDbContext context, IConfiguration configuration, ILogger<CategoriasController> logger)
         {
             _context = context;
             _configuration = configuration;
+            _logger = logger;
         }
 
         [HttpGet("LerArquivoConfiguracao")]
@@ -50,6 +52,7 @@ namespace ApiCatalogo.Controllers
         {
             try
             {
+                _logger.LogInformation("======================== Get categorias/produtos ============================");
                 //Nunca retornar objetos relacionados sem usar algum filtro (where, nesse caso)
                 return _context.Categorias.Include(p => p.Produtos).Where(c => c.CategoriaId <= 5).ToList();
             }
@@ -79,10 +82,12 @@ namespace ApiCatalogo.Controllers
         {
             try
             {
+                _logger.LogInformation($"======================== Get categorias/produtos/id = {id} ============================");
                 var categoria = await _context.Categorias.FirstOrDefaultAsync(c => c.CategoriaId == id);
 
                 if (categoria is null)
                 {
+                    _logger.LogInformation($"======================== Get categorias/produtos/id = {id} NÃO ENCONTRADO ============================");
                     return NotFound("Categoria não encontrada");
                 }
 

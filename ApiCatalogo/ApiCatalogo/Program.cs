@@ -1,4 +1,5 @@
 using ApiCatalogo.Context;
+using ApiCatalogo.Extensions;
 using ApiCatalogo.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -36,12 +37,26 @@ if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI();
+    app.ConfigureExceptionHandler();
 }
 
 app.UseHttpsRedirection();
 
 app.UseAuthorization();
 
+//Definir um middleware usando um request delegate
+/*app.Use(async (context, next) =>
+{
+    //adicionar o código antes do request
+    await next(context);
+    //adicionar o código depois do request
+});*/
+
 app.MapControllers();
 
+//Usado pra encerrar o pipeline de middleware e gerar uma resposta
+/*app.Run(async (context) =>
+{
+    await context.Response.WriteAsync("Middleware final");
+});*/
 app.Run();

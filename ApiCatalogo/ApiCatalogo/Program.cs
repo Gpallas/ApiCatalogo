@@ -1,4 +1,6 @@
 using ApiCatalogo.Context;
+using ApiCatalogo.Services;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Text.Json.Serialization;
 
@@ -14,6 +16,14 @@ builder.Services.AddSwaggerGen();
 
 string mySqlConnection = builder.Configuration.GetConnectionString("DefaultConnection");
 builder.Services.AddDbContext<AppDbContext>(options => options.UseMySql(mySqlConnection, ServerVersion.AutoDetect(mySqlConnection)));
+
+builder.Services.AddTransient<IMeuServico, MeuServico>();
+
+//Código pra desabilitar o [FromServices] ser implícito
+/*builder.Services.Configure<ApiBehaviorOptions>(option =>
+{
+    option.DisableImplicitFromServicesParameters = true;
+});*/
 
 var app = builder.Build();
 

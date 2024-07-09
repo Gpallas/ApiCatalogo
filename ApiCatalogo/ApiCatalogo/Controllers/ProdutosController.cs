@@ -20,148 +20,99 @@ namespace ApiCatalogo.Controllers
         [HttpGet("/primeiro")]
         public ActionResult<Produto> GetPrimeiro()
         {
-            try
-            {
-                var produto = _context.Produtos.First();
+            var produto = _context.Produtos.First();
 
-                if (produto is null)
-                {
-                    return NotFound("Não há produtos");
-                }
-
-                return Ok(produto);
-            }
-            catch (Exception)
+            if (produto is null)
             {
-                return StatusCode(StatusCodes.Status500InternalServerError, "Ocorreu um erro no servidor");
+                return NotFound("Não há produtos");
             }
+
+            return Ok(produto);
         }
 
         [HttpGet]
         public ActionResult<IEnumerable<Produto>> Get()
         {
-            try
-            {
-                //Nunca retornar todos os registros numa consulta (take(10), nesse caso)
-                var produtos = _context.Produtos.Take(10).ToList();
+            //Nunca retornar todos os registros numa consulta (take(10), nesse caso)
+            var produtos = _context.Produtos.Take(10).ToList();
 
-                if (produtos is null)
-                {
-                    return NotFound("Lista de produtos não encontrada");
-                }
-
-                return produtos;
-            }
-            catch (Exception)
+            if (produtos is null)
             {
-                return StatusCode(StatusCodes.Status500InternalServerError, "Ocorreu um erro no servidor");
+                return NotFound("Lista de produtos não encontrada");
             }
+
+            return produtos;
         }
 
         [HttpGet("{id:int}/{nome}")]
         public ActionResult<Produto> Get(int id, string nome)
         {
-            try
-            {
-                var produto = _context.Produtos.FirstOrDefault(p => p.ProdutoId == id && p.Nome == nome);
+            var produto = _context.Produtos.FirstOrDefault(p => p.ProdutoId == id && p.Nome == nome);
 
-                if (produto is null)
-                {
-                    return NotFound("Produto não encontrado");
-                }
-
-                return produto;
-            }
-            catch (Exception)
+            if (produto is null)
             {
-                return StatusCode(StatusCodes.Status500InternalServerError, "Ocorreu um erro no servidor");
+                return NotFound("Produto não encontrado");
             }
+
+            return produto;
         }
 
         //Não usar a restrição de rotas como validação pra ação. Usar pra distinguir entre rotas similares
         [HttpGet("{id:int:min(1)}", Name = "ObterProduto")]
         public ActionResult<Produto> Get(int id)
         {
-            try
-            {
-                var produto = _context.Produtos.FirstOrDefault(p => p.ProdutoId == id);
+            var produto = _context.Produtos.FirstOrDefault(p => p.ProdutoId == id);
 
-                if (produto is null)
-                {
-                    return NotFound("Produto não encontrado");
-                }
-
-                return produto;
-            }
-            catch (Exception)
+            if (produto is null)
             {
-                return StatusCode(StatusCodes.Status500InternalServerError, "Ocorreu um erro no servidor");
+                return NotFound("Produto não encontrado");
             }
+
+            return produto;
         }
 
         [HttpPost]
         public ActionResult Post(Produto produto)
         {
-            try
+            if (produto is null)
             {
-                if (produto is null)
-                {
-                    return BadRequest();
-                }
-
-                _context.Produtos.Add(produto);
-                _context.SaveChanges();
-
-                return new CreatedAtRouteResult("ObterProduto", new { id = produto.ProdutoId }, produto);
+                return BadRequest();
             }
-            catch (Exception)
-            {
-                return StatusCode(StatusCodes.Status500InternalServerError, "Ocorreu um erro no servidor");
-            }
+
+            _context.Produtos.Add(produto);
+            _context.SaveChanges();
+
+            return new CreatedAtRouteResult("ObterProduto", new { id = produto.ProdutoId }, produto);
         }
 
         [HttpPut("{id:int}")]
         public ActionResult Put(int id, Produto produto)
         {
-            try
+            if (id != produto.ProdutoId)
             {
-                if (id != produto.ProdutoId)
-                {
-                    return BadRequest();
-                }
-
-                _context.Entry(produto).State = EntityState.Modified;
-                _context.SaveChanges();
-
-                return Ok(produto);
+                return BadRequest();
             }
-            catch (Exception)
-            {
-                return StatusCode(StatusCodes.Status500InternalServerError, "Ocorreu um erro no servidor");
-            }
+
+            _context.Entry(produto).State = EntityState.Modified;
+            _context.SaveChanges();
+
+            return Ok(produto);
         }
 
         [HttpDelete("{id:int}")]
         public ActionResult Delete(int id)
         {
-            try
+            var produto = _context.Produtos.FirstOrDefault(p => p.ProdutoId == id);
+
+            if (produto is null)
             {
-                var produto = _context.Produtos.FirstOrDefault(p => p.ProdutoId == id);
-
-                if (produto is null)
-                {
-                    return NotFound("Produto não encontrado");
-                }
-
-                _context.Produtos.Remove(produto);
-                _context.SaveChanges();
-
-                return Ok(produto);
+                return NotFound("Produto não encontrado");
             }
-            catch (Exception)
-            {
-                return StatusCode(StatusCodes.Status500InternalServerError, "Ocorreu um erro no servidor");
-            }
+
+            _context.Produtos.Remove(produto);
+            _context.SaveChanges();
+
+            return Ok(produto);
         }
     }
 }

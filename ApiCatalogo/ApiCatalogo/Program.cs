@@ -19,6 +19,10 @@ builder.Services.AddDbContext<AppDbContext>(options => options.UseMySql(mySqlCon
 
 builder.Services.AddTransient<IMeuServico, MeuServico>();
 
+//Jeito de pegar info do arquivo de configuração
+/*var valor1 = builder.Configuration["chave1"];
+var valor2 = builder.Configuration["secao1:chave1"];*/
+
 //Código pra desabilitar o [FromServices] ser implícito
 /*builder.Services.Configure<ApiBehaviorOptions>(option =>
 {

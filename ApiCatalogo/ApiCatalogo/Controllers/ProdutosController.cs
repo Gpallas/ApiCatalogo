@@ -78,7 +78,8 @@ namespace ApiCatalogo.Controllers
             }
         }
 
-        [HttpGet("{id:int}", Name = "ObterProduto")]
+        //Não usar a restrição de rotas como validação pra ação. Usar pra distinguir entre rotas similares
+        [HttpGet("{id:int:min(1)}", Name = "ObterProduto")]
         public ActionResult<Produto> Get(int id)
         {
             try

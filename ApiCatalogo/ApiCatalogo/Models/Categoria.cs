@@ -2,6 +2,7 @@
 using System.Collections.ObjectModel;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using System.Text.Json.Serialization;
 
 namespace ApiCatalogo.Models
 {
@@ -22,6 +23,7 @@ namespace ApiCatalogo.Models
         [StringLength(300)]
         public string? ImagemUrl { get; set; }
 
+        [JsonIgnore]
         public ICollection<Produto>? Produtos { get; set; }
     }
 }

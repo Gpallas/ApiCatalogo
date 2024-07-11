@@ -2,7 +2,7 @@
 
 namespace ApiCatalogo.Repositories
 {
-    public interface IProdutoRepository
+    public interface ISpecificProdutoRepository
     {
         IQueryable<Produto> GetProdutos();
         Produto GetProdutoById(int id);

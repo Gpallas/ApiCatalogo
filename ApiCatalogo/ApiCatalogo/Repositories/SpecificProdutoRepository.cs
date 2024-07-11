@@ -3,11 +3,11 @@ using ApiCatalogo.Models;
 
 namespace ApiCatalogo.Repositories
 {
-    public class ProdutoRepository : IProdutoRepository
+    public class SpecificProdutoRepository : ISpecificProdutoRepository
     {
         private readonly AppDbContext _context;
 
-        public ProdutoRepository(AppDbContext context)
+        public SpecificProdutoRepository(AppDbContext context)
         {
             _context = context;
         }

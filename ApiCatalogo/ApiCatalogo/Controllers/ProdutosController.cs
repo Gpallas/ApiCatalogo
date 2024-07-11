@@ -11,8 +11,8 @@ namespace ApiCatalogo.Controllers
     [ApiController]
     public class ProdutosController : ControllerBase
     {
-        private readonly IProdutoRepository _repository;
-        public ProdutosController(IProdutoRepository repository)
+        private readonly ISpecificProdutoRepository _repository;
+        public ProdutosController(ISpecificProdutoRepository repository)
         {
             _repository = repository;
         }

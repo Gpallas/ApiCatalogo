@@ -2,7 +2,7 @@
 
 namespace ApiCatalogo.Repositories
 {
-    public interface ICategoriaRepository
+    public interface ISpecificCategoriaRepository
     {
         IEnumerable<Categoria> GetCategorias();
         Categoria GetCategoriaById(int id);

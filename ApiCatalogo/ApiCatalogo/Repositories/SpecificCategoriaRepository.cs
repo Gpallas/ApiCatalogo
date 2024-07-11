@@ -4,11 +4,11 @@ using Microsoft.EntityFrameworkCore;
 
 namespace ApiCatalogo.Repositories
 {
-    public class CategoriaRepository : ICategoriaRepository
+    public class SpecificCategoriaRepository : ISpecificCategoriaRepository
     {
         private readonly AppDbContext _context;
 
-        public CategoriaRepository(AppDbContext context)
+        public SpecificCategoriaRepository(AppDbContext context)
         {
             _context = context;
         }

@@ -13,10 +13,10 @@ namespace ApiCatalogo.Controllers
     [ApiController]
     public class CategoriasController : ControllerBase
     {
-        private readonly ISpecificCategoriaRepository _repository;
+        private readonly IRepository<Categoria> _repository;
         private readonly IConfiguration _configuration;
         private readonly ILogger _logger;
-        public CategoriasController(ISpecificCategoriaRepository repository, IConfiguration configuration, ILogger<CategoriasController> logger)
+        public CategoriasController(IRepository<Categoria> repository, IConfiguration configuration, ILogger<CategoriasController> logger)
         {
             _repository = repository;
             _configuration = configuration;
@@ -83,7 +83,7 @@ namespace ApiCatalogo.Controllers
         [HttpGet]
         public ActionResult<IEnumerable<Categoria>> Get()
         {
-            var categorias = _repository.GetCategorias();
+            var categorias = _repository.GetAll();
             return Ok(categorias);
         }
 
@@ -91,7 +91,7 @@ namespace ApiCatalogo.Controllers
         public ActionResult<Categoria> Get(int id)
         {
             _logger.LogInformation($"======================== Get categorias/produtos/id = {id} ============================");
-            var categoria = _repository.GetCategoriaById(id);
+            var categoria = _repository.GetByPredicate(c => c.CategoriaId == id);
 
             if (categoria is null)
             {
@@ -110,7 +110,7 @@ namespace ApiCatalogo.Controllers
                 return BadRequest();
             }
 
-            var categoriaCriada = _repository.CreateCategoria(categoria);
+            var categoriaCriada = _repository.Create(categoria);
 
             return new CreatedAtRouteResult("ObterCategoria", new { id = categoriaCriada.CategoriaId }, categoriaCriada);
         }
@@ -123,7 +123,7 @@ namespace ApiCatalogo.Controllers
                 return BadRequest("Dados inválidos");
             }
 
-            var categoriaAtualizada = _repository.UpdateCategoria(categoria);
+            var categoriaAtualizada = _repository.Update(categoria);
 
             return Ok(categoriaAtualizada);
         }
@@ -131,14 +131,14 @@ namespace ApiCatalogo.Controllers
         [HttpDelete("{id:int}")]
         public ActionResult Delete(int id)
         {
-            var categoria = _repository.GetCategoriaById(id);
+            var categoria = _repository.GetByPredicate(c => c.CategoriaId == id);
 
             if (categoria is null)
             {
                 return NotFound($"Categoria de id {id} não encontrada");
             }
 
-            var categoriaExcluida = _repository.DeleteCategoriaById(id);
+            var categoriaExcluida = _repository.Delete(categoria);
 
             return Ok(categoriaExcluida);
         }

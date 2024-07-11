@@ -33,6 +33,7 @@ builder.Services.AddScoped<ApiLoggingFilter>();
 
 builder.Services.AddScoped<ISpecificCategoriaRepository, SpecificCategoriaRepository>();
 builder.Services.AddScoped<ISpecificProdutoRepository, SpecificProdutoRepository>();
+builder.Services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
 
 //Jeito de pegar info do arquivo de configuração
 /*var valor1 = builder.Configuration["chave1"];

@@ -32,6 +32,7 @@ builder.Services.AddTransient<IMeuServico, MeuServico>();
 builder.Services.AddScoped<ApiLoggingFilter>();
 
 builder.Services.AddScoped<ICategoriaRepository, CategoriaRepository>();
+builder.Services.AddScoped<IProdutoRepository, ProdutoRepository>();
 
 //Jeito de pegar info do arquivo de configuração
 /*var valor1 = builder.Configuration["chave1"];

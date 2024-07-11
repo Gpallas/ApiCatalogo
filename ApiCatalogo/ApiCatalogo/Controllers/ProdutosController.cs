@@ -1,5 +1,6 @@
 ﻿using ApiCatalogo.Context;
 using ApiCatalogo.Models;
+using ApiCatalogo.Repositories;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -10,17 +11,17 @@ namespace ApiCatalogo.Controllers
     [ApiController]
     public class ProdutosController : ControllerBase
     {
-        private readonly AppDbContext _context;
-        public ProdutosController(AppDbContext context)
+        private readonly IProdutoRepository _repository;
+        public ProdutosController(IProdutoRepository repository)
         {
-            _context = context;
+            _repository = repository;
         }
 
         [HttpGet("primeiro")]
         [HttpGet("/primeiro")]
         public ActionResult<Produto> GetPrimeiro()
         {
-            var produto = _context.Produtos.First();
+            var produto = _repository.GetProdutos().First();
 
             if (produto is null)
             {
@@ -34,7 +35,7 @@ namespace ApiCatalogo.Controllers
         public ActionResult<IEnumerable<Produto>> Get()
         {
             //Nunca retornar todos os registros numa consulta (take(10), nesse caso)
-            var produtos = _context.Produtos.Take(10).ToList();
+            var produtos = _repository.GetProdutos().Take(10).ToList();
 
             if (produtos is null)
             {
@@ -47,21 +48,21 @@ namespace ApiCatalogo.Controllers
         [HttpGet("{id:int}/{nome}")]
         public ActionResult<Produto> Get(int id, string nome)
         {
-            var produto = _context.Produtos.FirstOrDefault(p => p.ProdutoId == id && p.Nome == nome);
+            var produto = _repository.GetProdutos().FirstOrDefault(p => p.ProdutoId == id && p.Nome == nome);
 
             if (produto is null)
             {
                 return NotFound("Produto não encontrado");
             }
 
-            return produto;
+            return Ok(produto);
         }
 
         //Não usar a restrição de rotas como validação pra ação. Usar pra distinguir entre rotas similares
         [HttpGet("{id:int:min(1)}", Name = "ObterProduto")]
         public ActionResult<Produto> Get(int id)
         {
-            var produto = _context.Produtos.FirstOrDefault(p => p.ProdutoId == id);
+            var produto = _repository.GetProdutoById(id);
 
             if (produto is null)
             {
@@ -79,10 +80,9 @@ namespace ApiCatalogo.Controllers
                 return BadRequest();
             }
 
-            _context.Produtos.Add(produto);
-            _context.SaveChanges();
+            var novoProduto = _repository.CreateProduto(produto);
 
-            return new CreatedAtRouteResult("ObterProduto", new { id = produto.ProdutoId }, produto);
+            return new CreatedAtRouteResult("ObterProduto", new { id = novoProduto.ProdutoId }, novoProduto);
         }
 
         [HttpPut("{id:int}")]
@@ -93,26 +93,31 @@ namespace ApiCatalogo.Controllers
                 return BadRequest();
             }
 
-            _context.Entry(produto).State = EntityState.Modified;
-            _context.SaveChanges();
-
-            return Ok(produto);
+            bool atualizado =_repository.UpdateProduto(produto);
+            
+            if (atualizado)
+            {
+                return Ok(produto);
+            }
+            else
+            {
+                return StatusCode(500, $"Falha ao atualizar o produto de id {id}");
+            }
         }
 
         [HttpDelete("{id:int}")]
         public ActionResult Delete(int id)
         {
-            var produto = _context.Produtos.FirstOrDefault(p => p.ProdutoId == id);
+            bool deletado = _repository.DeleteProduto(id);
 
-            if (produto is null)
+            if (deletado)
             {
-                return NotFound("Produto não encontrado");
+                return Ok($"Produto de id {id} foi excluído");
             }
-
-            _context.Produtos.Remove(produto);
-            _context.SaveChanges();
-
-            return Ok(produto);
+            else
+            {
+                return StatusCode(500, $"Falha ao excluir o produto de id {id}");
+            }
         }
     }
 }

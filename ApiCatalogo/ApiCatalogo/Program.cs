@@ -35,6 +35,7 @@ builder.Services.AddScoped<ISpecificCategoriaRepository, SpecificCategoriaReposi
 builder.Services.AddScoped<ISpecificProdutoRepository, SpecificProdutoRepository>();
 builder.Services.AddScoped<IProdutoRepository, ProdutoRepository>();
 builder.Services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
+builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 
 //Jeito de pegar info do arquivo de configuração
 /*var valor1 = builder.Configuration["chave1"];

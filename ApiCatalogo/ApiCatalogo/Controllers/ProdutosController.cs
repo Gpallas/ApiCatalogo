@@ -11,18 +11,17 @@ namespace ApiCatalogo.Controllers
     [ApiController]
     public class ProdutosController : ControllerBase
     {
-        private readonly IProdutoRepository _produtoRepository;
-        private readonly IRepository<Produto> _repository;
-        public ProdutosController(IRepository<Produto> repository, IProdutoRepository produtoRepository)
+        private readonly IUnitOfWork _uow;
+
+        public ProdutosController(IUnitOfWork uow)
         {
-            _repository = repository;
-            _produtoRepository = produtoRepository;
+            _uow = uow;
         }
 
         [HttpGet("produtos/{categoriaId:int}")]
         public ActionResult<IEnumerable<Produto>> GetProdutosPorCategoria(int categoriaId)
         {
-            var produtos = _produtoRepository.GetProdutosPorCategoria(categoriaId);
+            var produtos = _uow.ProdutoRepository.GetProdutosPorCategoria(categoriaId);
 
             if (produtos is null)
             {
@@ -36,7 +35,7 @@ namespace ApiCatalogo.Controllers
         [HttpGet("/primeiro")]
         public ActionResult<Produto> GetPrimeiro()
         {
-            var produto = _repository.GetAll().First();
+            var produto = _uow.ProdutoRepository.GetAll().First();
 
             if (produto is null)
             {
@@ -50,7 +49,7 @@ namespace ApiCatalogo.Controllers
         public ActionResult<IEnumerable<Produto>> Get()
         {
             //Nunca retornar todos os registros numa consulta (take(10), nesse caso)
-            var produtos = _repository.GetAll().Take(10).ToList();
+            var produtos = _uow.ProdutoRepository.GetAll().Take(10).ToList();
 
             if (produtos is null)
             {
@@ -63,7 +62,7 @@ namespace ApiCatalogo.Controllers
         [HttpGet("{id:int}/{nome}")]
         public ActionResult<Produto> Get(int id, string nome)
         {
-            var produto = _repository.GetByPredicate(p => p.ProdutoId == id && p.Nome == nome);
+            var produto = _uow.ProdutoRepository.GetByPredicate(p => p.ProdutoId == id && p.Nome == nome);
 
             if (produto is null)
             {
@@ -77,7 +76,7 @@ namespace ApiCatalogo.Controllers
         [HttpGet("{id:int:min(1)}", Name = "ObterProduto")]
         public ActionResult<Produto> Get(int id)
         {
-            var produto = _repository.GetByPredicate(p => p.ProdutoId == id);
+            var produto = _uow.ProdutoRepository.GetByPredicate(p => p.ProdutoId == id);
 
             if (produto is null)
             {
@@ -95,7 +94,8 @@ namespace ApiCatalogo.Controllers
                 return BadRequest();
             }
 
-            var novoProduto = _repository.Create(produto);
+            var novoProduto = _uow.ProdutoRepository.Create(produto);
+            _uow.Commit();
 
             return new CreatedAtRouteResult("ObterProduto", new { id = novoProduto.ProdutoId }, novoProduto);
         }
@@ -108,7 +108,8 @@ namespace ApiCatalogo.Controllers
                 return BadRequest();
             }
 
-            var produtoAtualizado = _repository.Update(produto);
+            var produtoAtualizado = _uow.ProdutoRepository.Update(produto);
+            _uow.Commit();
 
             return Ok(produtoAtualizado);
         }
@@ -116,14 +117,16 @@ namespace ApiCatalogo.Controllers
         [HttpDelete("{id:int}")]
         public ActionResult Delete(int id)
         {
-            var produto = _repository.GetByPredicate(p => p.ProdutoId == id);
+            var produto = _uow.ProdutoRepository.GetByPredicate(p => p.ProdutoId == id);
 
             if (produto is null)
             {
                 return NotFound("Produto não encontrado");
             }
 
-            var produtoDeletado = _repository.Delete(produto);
+            var produtoDeletado = _uow.ProdutoRepository.Delete(produto);
+            _uow.Commit();
+
             return Ok(produtoDeletado);
         }
     }

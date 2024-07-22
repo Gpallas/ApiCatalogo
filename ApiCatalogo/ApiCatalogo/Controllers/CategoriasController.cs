@@ -1,4 +1,6 @@
 ﻿using ApiCatalogo.Context;
+using ApiCatalogo.DTOs;
+using ApiCatalogo.DTOs.Mappings;
 using ApiCatalogo.Filters;
 using ApiCatalogo.Models;
 using ApiCatalogo.Repositories;
@@ -48,8 +50,8 @@ namespace ApiCatalogo.Controllers
             return meuServico.Saudacao(nome);
         }
 
-        /*
-        [HttpGet("produtos")]
+        // Actions basicas
+        /*[HttpGet("produtos")]
         public ActionResult<IEnumerable<Categoria>> GetCategoriasProdutos()
         {
             _logger.LogInformation("======================== Get categorias/produtos ============================");
@@ -80,7 +82,8 @@ namespace ApiCatalogo.Controllers
             return Ok(categoria);
         }*/
 
-        [HttpGet]
+        // Actions usando o UnitOfWork
+        /*[HttpGet]
         public ActionResult<IEnumerable<Categoria>> Get()
         {
             var categorias = _uow.CategoriaRepository.GetAll();
@@ -144,6 +147,149 @@ namespace ApiCatalogo.Controllers
             _uow.Commit();
 
             return Ok(categoriaExcluida);
+        }*/
+
+        // Actions usando DTO
+        [HttpGet]
+        public ActionResult<IEnumerable<CategoriaDTO>> Get()
+        {
+            var categorias = _uow.CategoriaRepository.GetAll();
+
+            if (categorias is null)
+            {
+                return NotFound("Não existem categorias");
+            }
+
+            //var categoriasDTO = new List<CategoriaDTO>();
+            //foreach (var categoria in categorias)
+            //{
+            //    var categoriaDTO = new CategoriaDTO
+            //    {
+            //        CategoriaId = categoria.CategoriaId,
+            //        Nome = categoria.Nome,
+            //        ImagemUrl = categoria.ImagemUrl
+            //    };
+
+            //    categoriasDTO.Add(categoriaDTO);
+            //}
+
+            var categoriasDTO = categorias.ToCategoriaDTOList();
+
+            return Ok(categoriasDTO);
+        }
+
+        [HttpGet("{id:int}", Name = "ObterCategoria")]
+        public ActionResult<CategoriaDTO> Get(int id)
+        {
+            _logger.LogInformation($"======================== Get categorias/produtos/id = {id} ============================");
+            var categoria = _uow.CategoriaRepository.GetByPredicate(c => c.CategoriaId == id);
+
+            if (categoria is null)
+            {
+                _logger.LogInformation($"======================== Get categorias/produtos/id = {id} NÃO ENCONTRADO ============================");
+                return NotFound("Categoria não encontrada");
+            }
+
+            //var categoriaDTO = new CategoriaDTO()
+            //{
+            //    CategoriaId = categoria.CategoriaId,
+            //    Nome = categoria.Nome,
+            //    ImagemUrl = categoria.ImagemUrl
+            //};
+
+            var categoriaDTO = categoria.ToCategoriaDTO();
+
+            return Ok(categoriaDTO);
+        }
+
+        [HttpPost]
+        public ActionResult<CategoriaDTO> Post(CategoriaDTO categoriaDTO)
+        {
+            if (categoriaDTO is null)
+            {
+                return BadRequest();
+            }
+
+            //var categoria = new Categoria()
+            //{
+            //    CategoriaId = categoriaDTO.CategoriaId,
+            //    Nome = categoriaDTO.Nome,
+            //    ImagemUrl = categoriaDTO.ImagemUrl
+            //};
+
+            var categoria = categoriaDTO.ToCategoria();
+
+            var categoriaCriada = _uow.CategoriaRepository.Create(categoria);
+            _uow.Commit();
+
+            //var novaCategoriaDTO = new CategoriaDTO()
+            //{
+            //    CategoriaId = categoriaCriada.CategoriaId,
+            //    Nome = categoriaCriada.Nome,
+            //    ImagemUrl = categoriaCriada.ImagemUrl
+            //};
+
+            var novaCategoriaDTO = categoriaCriada.ToCategoriaDTO();
+
+            return new CreatedAtRouteResult("ObterCategoria", new { id = novaCategoriaDTO.CategoriaId }, novaCategoriaDTO);
+        }
+
+        [HttpPut("{id:int}")]
+        public ActionResult<CategoriaDTO> Put(int id, CategoriaDTO categoriaDTO)
+        {
+            if (id != categoriaDTO.CategoriaId)
+            {
+                return BadRequest("Dados inválidos");
+            }
+
+            //var categoria = new Categoria()
+            //{
+            //    CategoriaId = categoriaDTO.CategoriaId,
+            //    Nome = categoriaDTO.Nome,
+            //    ImagemUrl = categoriaDTO.ImagemUrl
+            //};
+
+            var categoria = categoriaDTO.ToCategoria();
+
+            var categoriaAtualizada = _uow.CategoriaRepository.Update(categoria);
+            _uow.Commit();
+
+
+            //var categoriaAtualizadaDTO = new CategoriaDTO()
+            //{
+            //    CategoriaId = categoriaAtualizada.CategoriaId,
+            //    Nome = categoriaAtualizada.Nome,
+            //    ImagemUrl = categoriaAtualizada.ImagemUrl
+            //};
+
+            var categoriaAtualizadaDTO = categoriaAtualizada.ToCategoriaDTO();
+
+            return Ok(categoriaAtualizada);
+        }
+
+        [HttpDelete("{id:int}")]
+        public ActionResult<CategoriaDTO> Delete(int id)
+        {
+            var categoria = _uow.CategoriaRepository.GetByPredicate(c => c.CategoriaId == id);
+
+            if (categoria is null)
+            {
+                return NotFound($"Categoria de id {id} não encontrada");
+            }
+
+            var categoriaExcluida = _uow.CategoriaRepository.Delete(categoria);
+            _uow.Commit();
+
+            //var categoriaExcluidaDTO = new CategoriaDTO()
+            //{
+            //    CategoriaId = categoriaExcluida.CategoriaId,
+            //    Nome = categoriaExcluida.Nome,
+            //    ImagemUrl = categoriaExcluida.ImagemUrl
+            //};
+
+            var categoriaExcluidaDTO = categoriaExcluida.ToCategoriaDTO();
+
+            return Ok(categoriaExcluidaDTO);
         }
     }
 }

@@ -15,7 +15,7 @@ namespace ApiCatalogo.Models
         [StringLength(20, ErrorMessage = "O nome deve ter entre 5 e 20 caractéres", MinimumLength = 5)]
         public string? Nome { get; set; }
         [Required]
-        [StringLength(10, ErrorMessage = "A descrição deve ter no máximo {1} caractéres")]
+        [StringLength(100, ErrorMessage = "A descrição deve ter no máximo {1} caractéres")]
         public string? Descricao { get; set; }
         [Required]
         [Column(TypeName ="decimal(10, 2)")]

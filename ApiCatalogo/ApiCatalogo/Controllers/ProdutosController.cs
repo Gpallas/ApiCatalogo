@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Newtonsoft.Json;
 
 namespace ApiCatalogo.Controllers
 {
@@ -59,6 +60,19 @@ namespace ApiCatalogo.Controllers
         public ActionResult<IEnumerable<ProdutoDTO>> Get([FromQuery] ProdutosParameters produtosParams)
         {
             var produtos = _uow.ProdutoRepository.GetProdutos(produtosParams);
+
+            var metadata = new
+            {
+                produtos.TotalCount,
+                produtos.PageSize,
+                produtos.CurrentPage,
+                produtos.TotalPages,
+                produtos.hasNext,
+                produtos.hasPrevious
+            };
+
+            Response.Headers.Append("X-Pagination", JsonConvert.SerializeObject(metadata));
+
             var produtosDTO = _mapper.Map<IEnumerable<ProdutoDTO>>(produtos);
 
             return Ok(produtosDTO);

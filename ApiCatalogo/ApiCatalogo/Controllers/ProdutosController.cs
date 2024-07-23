@@ -1,6 +1,7 @@
 ﻿using ApiCatalogo.Context;
 using ApiCatalogo.DTOs;
 using ApiCatalogo.Models;
+using ApiCatalogo.Pagination;
 using ApiCatalogo.Repositories;
 using AutoMapper;
 using Microsoft.AspNetCore.Http;
@@ -52,6 +53,15 @@ namespace ApiCatalogo.Controllers
             var produtoDTO = _mapper.Map<ProdutoDTO>(produto);
 
             return Ok(produtoDTO);
+        }
+
+        [HttpGet("pagination")]
+        public ActionResult<IEnumerable<ProdutoDTO>> Get([FromQuery] ProdutosParameters produtosParams)
+        {
+            var produtos = _uow.ProdutoRepository.GetProdutos(produtosParams);
+            var produtosDTO = _mapper.Map<IEnumerable<ProdutoDTO>>(produtos);
+
+            return Ok(produtosDTO);
         }
 
         [HttpGet]

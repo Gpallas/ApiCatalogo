@@ -184,7 +184,20 @@ namespace ApiCatalogo.Controllers
         public ActionResult<IEnumerable<CategoriaDTO>> Get([FromQuery] CategoriasParameters categoriasParams)
         {
             var categorias = _uow.CategoriaRepository.GetCategorias(categoriasParams);
+            
+            return ObterCategorias(categorias);
+        }
 
+        [HttpGet("filter/nome/pagination")]
+        public ActionResult<IEnumerable<CategoriaDTO>> Get([FromQuery] CategoriasFiltroNome categoriasFiltroParams)
+        {
+            var categorias = _uow.CategoriaRepository.GetCategoriasFiltroNome(categoriasFiltroParams);
+
+            return ObterCategorias(categorias);
+        }
+
+        private ActionResult<IEnumerable<CategoriaDTO>> ObterCategorias(PagedList<Categoria> categorias)
+        {
             var metadata = new
             {
                 categorias.TotalCount,

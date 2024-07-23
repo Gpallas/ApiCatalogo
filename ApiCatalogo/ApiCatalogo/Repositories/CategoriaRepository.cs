@@ -17,5 +17,19 @@ namespace ApiCatalogo.Repositories
 
             return categoriasOrdenadas;
         }
+
+        public PagedList<Categoria> GetCategoriasFiltroNome(CategoriasFiltroNome categoriaFiltroParams)
+        {
+            var categorias = GetAll().AsQueryable();
+
+            if (!string.IsNullOrEmpty(categoriaFiltroParams.Nome))
+            {
+                categorias = categorias.Where(c => c.Nome.Contains(categoriaFiltroParams.Nome));
+            }
+
+            var categoriasFiltradas = PagedList<Categoria>.ToPagedList(categorias, categoriaFiltroParams.PageNumber, categoriaFiltroParams.PageSize);
+
+            return categoriasFiltradas;
+        }
     }
 }

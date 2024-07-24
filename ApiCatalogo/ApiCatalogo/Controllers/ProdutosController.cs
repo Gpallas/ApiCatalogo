@@ -26,9 +26,9 @@ namespace ApiCatalogo.Controllers
         }
 
         [HttpGet("produtos/{categoriaId:int}")]
-        public ActionResult<IEnumerable<ProdutoDTO>> GetProdutosPorCategoria(int categoriaId)
+        public async Task<ActionResult<IEnumerable<ProdutoDTO>>> GetProdutosPorCategoria(int categoriaId)
         {
-            var produtos = _uow.ProdutoRepository.GetProdutosPorCategoria(categoriaId);
+            var produtos = await _uow.ProdutoRepository.GetProdutosPorCategoriaAsync(categoriaId);
 
             if (produtos is null)
             {
@@ -42,9 +42,10 @@ namespace ApiCatalogo.Controllers
 
         [HttpGet("primeiro")]
         [HttpGet("/primeiro")]
-        public ActionResult<ProdutoDTO> GetPrimeiro()
+        public async Task<ActionResult<ProdutoDTO>> GetPrimeiro()
         {
-            var produto = _uow.ProdutoRepository.GetAll().First();
+            var produtos = await _uow.ProdutoRepository.GetAllAsync();
+            var produto = produtos.First();
 
             if (produto is null)
             {
@@ -57,17 +58,17 @@ namespace ApiCatalogo.Controllers
         }
 
         [HttpGet("pagination")]
-        public ActionResult<IEnumerable<ProdutoDTO>> Get([FromQuery] ProdutosParameters produtosParams)
+        public async Task<ActionResult<IEnumerable<ProdutoDTO>>> Get([FromQuery] ProdutosParameters produtosParams)
         {
-            var produtos = _uow.ProdutoRepository.GetProdutos(produtosParams);
+            var produtos = await _uow.ProdutoRepository.GetProdutosAsync(produtosParams);
 
             return ObterProdutos(produtos);
         }
 
         [HttpGet("filter/preco/pagination")]
-        public ActionResult<IEnumerable<ProdutoDTO>> Get([FromQuery] ProdutosFiltroPreco produtosFiltroParams)
+        public async Task<ActionResult<IEnumerable<ProdutoDTO>>> Get([FromQuery] ProdutosFiltroPreco produtosFiltroParams)
         {
-            var produtos = _uow.ProdutoRepository.GetProdutosFiltroPreco(produtosFiltroParams);
+            var produtos = await _uow.ProdutoRepository.GetProdutosFiltroPrecoAsync(produtosFiltroParams);
 
             return ObterProdutos(produtos);
         }
@@ -92,15 +93,17 @@ namespace ApiCatalogo.Controllers
         }
 
         [HttpGet]
-        public ActionResult<IEnumerable<ProdutoDTO>> Get()
+        public async Task<ActionResult<IEnumerable<ProdutoDTO>>> Get()
         {
-            //Nunca retornar todos os registros numa consulta (take(10), nesse caso)
-            var produtos = _uow.ProdutoRepository.GetAll().Take(10).ToList();
+            var produtos = await _uow.ProdutoRepository.GetAllAsync();
 
             if (produtos is null)
             {
                 return NotFound("Lista de produtos não encontrada");
             }
+
+            //Nunca retornar todos os registros numa consulta (take(10), nesse caso)
+            produtos = produtos.Take(10).ToList();
 
             var produtosDTO = _mapper.Map<IEnumerable<ProdutoDTO>>(produtos);
 
@@ -108,9 +111,9 @@ namespace ApiCatalogo.Controllers
         }
 
         [HttpGet("{id:int}/{nome}")]
-        public ActionResult<ProdutoDTO> Get(int id, string nome)
+        public async Task<ActionResult<ProdutoDTO>> Get(int id, string nome)
         {
-            var produto = _uow.ProdutoRepository.GetByPredicate(p => p.ProdutoId == id && p.Nome == nome);
+            var produto = await _uow.ProdutoRepository.GetByPredicateAsync(p => p.ProdutoId == id && p.Nome == nome);
 
             if (produto is null)
             {
@@ -124,9 +127,9 @@ namespace ApiCatalogo.Controllers
 
         //Não usar a restrição de rotas como validação pra ação. Usar pra distinguir entre rotas similares
         [HttpGet("{id:int:min(1)}", Name = "ObterProduto")]
-        public ActionResult<ProdutoDTO> Get(int id)
+        public async Task<ActionResult<ProdutoDTO>> Get(int id)
         {
-            var produto = _uow.ProdutoRepository.GetByPredicate(p => p.ProdutoId == id);
+            var produto = await _uow.ProdutoRepository.GetByPredicateAsync(p => p.ProdutoId == id);
 
             if (produto is null)
             {
@@ -139,7 +142,7 @@ namespace ApiCatalogo.Controllers
         }
 
         [HttpPost]
-        public ActionResult<ProdutoDTO> Post(ProdutoDTO produtoDTO)
+        public async Task<ActionResult<ProdutoDTO>> Post(ProdutoDTO produtoDTO)
         {
             if (produtoDTO is null)
             {
@@ -149,7 +152,7 @@ namespace ApiCatalogo.Controllers
             var produto = _mapper.Map<Produto>(produtoDTO);
 
             var novoProduto = _uow.ProdutoRepository.Create(produto);
-            _uow.Commit();
+            await _uow.CommitAsync();
 
             var novoProdutoDTO = _mapper.Map<ProdutoDTO>(novoProduto);
 
@@ -157,14 +160,14 @@ namespace ApiCatalogo.Controllers
         }
 
         [HttpPatch("{id:int}/UpdatePartial")]
-        public ActionResult<ProdutoDTOUpdateResponse> Patch(int id, JsonPatchDocument<ProdutoDTOUpdateRequest> patchProdutoDTO)
+        public async Task<ActionResult<ProdutoDTOUpdateResponse>> Patch(int id, JsonPatchDocument<ProdutoDTOUpdateRequest> patchProdutoDTO)
         {
             if (patchProdutoDTO is null || id <= 0)
             {
                 return BadRequest();
             }
 
-            var produto = _uow.ProdutoRepository.GetByPredicate(p => p.ProdutoId == id);
+            var produto = await _uow.ProdutoRepository.GetByPredicateAsync(p => p.ProdutoId == id);
 
             if (produto is null)
             {
@@ -183,13 +186,13 @@ namespace ApiCatalogo.Controllers
             _mapper.Map(produtoUpdateRequest, produto);
 
             _uow.ProdutoRepository.Update(produto);
-            _uow.Commit();
+            await _uow.CommitAsync();
 
             return Ok(_mapper.Map<ProdutoDTOUpdateResponse>(produto));
         }
 
         [HttpPut("{id:int}")]
-        public ActionResult<ProdutoDTO> Put(int id, ProdutoDTO produtoDTO)
+        public async Task<ActionResult<ProdutoDTO>> Put(int id, ProdutoDTO produtoDTO)
         {
             if (id != produtoDTO.ProdutoId)
             {
@@ -199,7 +202,7 @@ namespace ApiCatalogo.Controllers
             var produto = _mapper.Map<Produto>(produtoDTO);
 
             var produtoAtualizado = _uow.ProdutoRepository.Update(produto);
-            _uow.Commit();
+            await _uow.CommitAsync();
 
             var produtoAtualizadoDTO = _mapper.Map<ProdutoDTO>(produtoAtualizado);
 
@@ -207,9 +210,9 @@ namespace ApiCatalogo.Controllers
         }
 
         [HttpDelete("{id:int}")]
-        public ActionResult<ProdutoDTO> Delete(int id)
+        public async Task<ActionResult<ProdutoDTO>> Delete(int id)
         {
-            var produto = _uow.ProdutoRepository.GetByPredicate(p => p.ProdutoId == id);
+            var produto = await _uow.ProdutoRepository.GetByPredicateAsync(p => p.ProdutoId == id);
 
             if (produto is null)
             {
@@ -217,7 +220,7 @@ namespace ApiCatalogo.Controllers
             }
 
             var produtoDeletado = _uow.ProdutoRepository.Delete(produto);
-            _uow.Commit();
+            await _uow.CommitAsync();
 
             var produtoDeletadoDTO = _mapper.Map<ProdutoDTO>(produtoDeletado);
 

@@ -63,7 +63,20 @@ builder.Services.AddSwaggerGen(c =>
 var secretKey = builder.Configuration["JWT:SecretKey"] ?? throw new ArgumentException("Invalid secret key");
 builder.Services.AddIdentity<ApplicationUser, IdentityRole>().AddEntityFrameworkStores<AppDbContext>().AddDefaultTokenProviders();
 
-builder.Services.AddAuthorization();
+builder.Services.AddAuthorization(options =>
+{
+    options.AddPolicy("AdminOnly", policy => policy.RequireRole("Admin"));
+
+    options.AddPolicy("SuperAdminOnly", policy => policy.RequireRole("Admin").RequireClaim("id", "pallas"));
+
+    options.AddPolicy("UserOnly", policy => policy.RequireRole("User"));
+
+    options.AddPolicy("ExclusiveOnly", policy => policy.RequireAssertion(
+        context => context.User.HasClaim(claim => claim.Type == "id" && claim.Value == "pallas") || 
+                                                    context.User.IsInRole("SuperAdmin")
+        )
+    );
+});
 builder.Services.AddAuthentication(options =>
 {
     options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;

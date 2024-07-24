@@ -17,13 +17,15 @@ namespace ApiCatalogo.Controllers
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly RoleManager<IdentityRole> _roleManager;
         private readonly IConfiguration _config;
+        private readonly ILogger<AuthController> _logger;
 
-        public AuthController(ITokenService tokenService, UserManager<ApplicationUser> userManager, RoleManager<IdentityRole> roleManager, IConfiguration config)
+        public AuthController(ITokenService tokenService, UserManager<ApplicationUser> userManager, RoleManager<IdentityRole> roleManager, IConfiguration config, ILogger<AuthController> logger)
         {
             _tokenService = tokenService;
             _userManager = userManager;
             _roleManager = roleManager;
             _config = config;
+            _logger = logger;
         }
 
         [HttpPost]
@@ -40,6 +42,7 @@ namespace ApiCatalogo.Controllers
                 {
                     new Claim(ClaimTypes.Name, user.UserName!),
                     new Claim(ClaimTypes.Email, user.Email!),
+                    new Claim("id", user.UserName!),
                     new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
                 };
 
@@ -142,7 +145,7 @@ namespace ApiCatalogo.Controllers
             });
         }
 
-        [Authorize]
+        [Authorize(Policy = "ExclusiveOnly")]
         [HttpPost]
         [Route("revoke/{username}")]
         public async Task<IActionResult> Revoke(string username)
@@ -158,6 +161,58 @@ namespace ApiCatalogo.Controllers
             await _userManager.UpdateAsync(user);
 
             return NoContent();
+        }
+
+        [HttpPost]
+        [Route("CreateRole")]
+        [Authorize(Policy = "SuperAdminOnly")]
+        public async Task<IActionResult> CreateRole(string roleName)
+        {
+            var roleExist = await _roleManager.RoleExistsAsync(roleName);
+
+            if (!roleExist)
+            {
+                var roleResult = await _roleManager.CreateAsync(new IdentityRole(roleName));
+
+                if (roleResult.Succeeded)
+                {
+                    _logger.LogInformation(1, "Roles Added");
+                    return StatusCode(StatusCodes.Status200OK, new Response { Status = "Success", Message = $"Role {roleName} added successfully" });
+                }
+                else
+                {
+                    _logger.LogInformation(2, "Error");
+                    return StatusCode(StatusCodes.Status400BadRequest, new Response { Status = "Error", Message = $"Issue adding new {roleName} role" });
+                }
+            }
+
+            return StatusCode(StatusCodes.Status400BadRequest, new Response { Status = "Error", Message = "Role already exists" });
+        }
+
+        [HttpPost]
+        [Route("AddUserToRole")]
+        [Authorize(Policy = "AdminOnly")]
+        public async Task<IActionResult> AddUserToRole(string email, string roleName)
+        {
+            var user = await _userManager.FindByEmailAsync(email);
+
+            if (user != null)
+            {
+                var result = await _userManager.AddToRoleAsync(user, roleName);
+
+                if (result.Succeeded)
+                {
+                    _logger.LogInformation(1, $"User {user.Email} added to the {roleName} role");
+                    return StatusCode(StatusCodes.Status200OK, new Response { Status = "Success", Message = $"User {user.Email} added to the {roleName} role" });
+                }
+                else
+                {
+                    _logger.LogInformation(2, $"Error: Unable to add user {user.Email} to the {roleName} role");
+                    return StatusCode(StatusCodes.Status400BadRequest, new Response { Status = "Error", Message = $"Error: Unable to add user {user.Email} to the {roleName} role" });
+                }
+            }
+
+            return BadRequest(new { error = "Unable to find user" });
         }
     }
 }

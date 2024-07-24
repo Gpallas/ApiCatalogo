@@ -4,6 +4,7 @@ using ApiCatalogo.Models;
 using ApiCatalogo.Pagination;
 using ApiCatalogo.Repositories;
 using AutoMapper;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
@@ -43,6 +44,7 @@ namespace ApiCatalogo.Controllers
 
         [HttpGet("primeiro")]
         [HttpGet("/primeiro")]
+        [Authorize(Policy = "UserOnly")]
         public async Task<ActionResult<ProdutoDTO>> GetPrimeiro()
         {
             var produtos = await _uow.ProdutoRepository.GetAllAsync();

@@ -4,16 +4,19 @@ using ApiCatalogo.Extensions;
 using ApiCatalogo.Filters;
 using ApiCatalogo.Logging;
 using ApiCatalogo.Models;
+using ApiCatalogo.RateLimitOptions;
 using ApiCatalogo.Repositories;
 using ApiCatalogo.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using System.Text;
 using System.Text.Json.Serialization;
+using System.Threading.RateLimiting;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -115,6 +118,41 @@ builder.Services.AddAuthentication(options =>
     };
 });
 
+var myOptions = new MyRateLimitOptions();
+
+builder.Configuration.GetSection(MyRateLimitOptions.MyRateLimit).Bind(myOptions);
+
+builder.Services.AddRateLimiter(rateLimiterOptions =>
+{
+    rateLimiterOptions.AddFixedWindowLimiter(policyName: "FixedWindow", policyOptions =>
+    {
+        policyOptions.PermitLimit = myOptions.PermitLimit;
+        policyOptions.Window = TimeSpan.FromSeconds(myOptions.Window);
+        policyOptions.QueueLimit = myOptions.QueueLimit;
+        policyOptions.QueueProcessingOrder = QueueProcessingOrder.OldestFirst;
+    });
+    rateLimiterOptions.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
+});
+
+builder.Services.AddRateLimiter(rateLimiterOptions =>
+{
+    rateLimiterOptions.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
+
+    rateLimiterOptions.GlobalLimiter = PartitionedRateLimiter.Create<HttpContext, string>(httpContext =>
+                                                        RateLimitPartition.GetFixedWindowLimiter(
+                                                                           partitionKey: httpContext.User.Identity?.Name ??
+                                                                                         httpContext.Request.Headers.Host.ToString(),
+                                                                           factory: partition => new FixedWindowRateLimiterOptions
+                                                                           {
+                                                                               AutoReplenishment = true,
+                                                                               PermitLimit = 2,
+                                                                               QueueLimit = 0,
+                                                                               Window = TimeSpan.FromSeconds(10)
+                                                                           }
+                                                        )
+    );
+});
+
 string mySqlConnection = builder.Configuration.GetConnectionString("DefaultConnection");
 builder.Services.AddDbContext<AppDbContext>(options => options.UseMySql(mySqlConnection, ServerVersion.AutoDetect(mySqlConnection)));
 
@@ -157,6 +195,8 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+
+app.UseRateLimiter();
 
 app.UseCors(/*OrigensComAcessoPermitido*/);
 

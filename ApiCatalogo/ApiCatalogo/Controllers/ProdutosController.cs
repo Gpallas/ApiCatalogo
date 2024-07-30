@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
 using X.PagedList;
@@ -16,6 +17,7 @@ namespace ApiCatalogo.Controllers
 {
     [Route("[controller]")]
     [ApiController]
+    [EnableRateLimiting("FixedWindow")]
     public class ProdutosController : ControllerBase
     {
         private readonly IUnitOfWork _uow;
@@ -114,6 +116,7 @@ namespace ApiCatalogo.Controllers
         }
 
         [HttpGet("{id:int}/{nome}")]
+        //[DisableRateLimiting]
         public async Task<ActionResult<ProdutoDTO>> Get(int id, string nome)
         {
             var produto = await _uow.ProdutoRepository.GetByPredicateAsync(p => p.ProdutoId == id && p.Nome == nome);

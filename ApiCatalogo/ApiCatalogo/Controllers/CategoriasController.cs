@@ -7,6 +7,7 @@ using ApiCatalogo.Pagination;
 using ApiCatalogo.Repositories;
 using ApiCatalogo.Services;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -15,6 +16,7 @@ using X.PagedList;
 
 namespace ApiCatalogo.Controllers
 {
+    [EnableCors("OrigensComAcessoPermitido")]
     [Route("[controller]")]
     [ApiController]
     public class CategoriasController : ControllerBase
@@ -47,7 +49,7 @@ namespace ApiCatalogo.Controllers
         {
             return meuServico.Saudacao(nome);
         }
-        
+
         //À partir do .Net 8, o [FromServices] é implícito por padrão
         [HttpGet("SemUsarFromServices/{nome}")]
         public ActionResult<string> GetSaudacaoSemFromServices(IMeuServico meuServico, string nome)
@@ -218,6 +220,7 @@ namespace ApiCatalogo.Controllers
             return Ok(categoriasDTO);
         }
 
+        [DisableCors]
         [HttpGet("{id:int}", Name = "ObterCategoria")]
         public async Task<ActionResult<CategoriaDTO>> Get(int id)
         {

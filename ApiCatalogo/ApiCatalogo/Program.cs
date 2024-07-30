@@ -7,6 +7,7 @@ using ApiCatalogo.Models;
 using ApiCatalogo.RateLimitOptions;
 using ApiCatalogo.Repositories;
 using ApiCatalogo.Services;
+using Asp.Versioning;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -151,6 +152,18 @@ builder.Services.AddRateLimiter(rateLimiterOptions =>
                                                                            }
                                                         )
     );
+});
+
+builder.Services.AddApiVersioning(o =>
+{
+    o.DefaultApiVersion = new ApiVersion(1, 0);
+    o.AssumeDefaultVersionWhenUnspecified = true;
+    o.ReportApiVersions = true;
+    o.ApiVersionReader = ApiVersionReader.Combine(new QueryStringApiVersionReader(), new UrlSegmentApiVersionReader());
+}).AddApiExplorer(options =>
+{
+    options.GroupNameFormat = "'v'VVV";
+    options.SubstituteApiVersionInUrl = true;
 });
 
 string mySqlConnection = builder.Configuration.GetConnectionString("DefaultConnection");

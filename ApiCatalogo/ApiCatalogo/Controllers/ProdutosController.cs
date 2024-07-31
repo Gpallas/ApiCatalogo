@@ -18,6 +18,7 @@ namespace ApiCatalogo.Controllers
     [Route("[controller]")]
     [ApiController]
     [EnableRateLimiting("FixedWindow")]
+    [ApiConventionType(typeof(DefaultApiConventions))]
     public class ProdutosController : ControllerBase
     {
         private readonly IUnitOfWork _uow;
@@ -97,6 +98,10 @@ namespace ApiCatalogo.Controllers
             return Ok(produtosDTO);
         }
 
+        /// <summary>
+        /// Exibe uma relação dos produtos
+        /// </summary>
+        /// <returns>Retorna uma lista de objetos Produto</returns>
         [HttpGet]
         public async Task<ActionResult<IEnumerable<ProdutoDTO>>> Get()
         {
@@ -132,6 +137,11 @@ namespace ApiCatalogo.Controllers
         }
 
         //Não usar a restrição de rotas como validação pra ação. Usar pra distinguir entre rotas similares
+        /// <summary>
+        /// Obtem o produto pelo seu identificador produtoID
+        /// </summary>
+        /// <param name="id">Código do produto</param>
+        /// <returns>Um objeto Produto</returns>
         [HttpGet("{id:int:min(1)}", Name = "ObterProduto")]
         public async Task<ActionResult<ProdutoDTO>> Get(int id)
         {

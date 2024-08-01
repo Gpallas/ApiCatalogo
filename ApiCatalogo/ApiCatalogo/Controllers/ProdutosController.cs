@@ -103,21 +103,32 @@ namespace ApiCatalogo.Controllers
         /// </summary>
         /// <returns>Retorna uma lista de objetos Produto</returns>
         [HttpGet]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(string), StatusCodes.Status404NotFound)]
+        [ProducesDefaultResponseType]
         public async Task<ActionResult<IEnumerable<ProdutoDTO>>> Get()
         {
-            var produtos = await _uow.ProdutoRepository.GetAllAsync();
-
-            if (produtos is null)
+            try
             {
-                return NotFound("Lista de produtos não encontrada");
+                var produtos = await _uow.ProdutoRepository.GetAllAsync();
+
+                if (produtos is null)
+                {
+                    return NotFound("Lista de produtos não encontrada");
+                }
+
+                //Nunca retornar todos os registros numa consulta (take(10), nesse caso)
+                produtos = produtos.Take(10).ToList();
+
+                var produtosDTO = _mapper.Map<IEnumerable<ProdutoDTO>>(produtos);
+
+                return Ok(produtosDTO);
             }
-
-            //Nunca retornar todos os registros numa consulta (take(10), nesse caso)
-            produtos = produtos.Take(10).ToList();
-
-            var produtosDTO = _mapper.Map<IEnumerable<ProdutoDTO>>(produtos);
-
-            return Ok(produtosDTO);
+            catch
+            {
+                return BadRequest();
+            }
         }
 
         [HttpGet("{id:int}/{nome}")]
@@ -146,6 +157,11 @@ namespace ApiCatalogo.Controllers
         public async Task<ActionResult<ProdutoDTO>> Get(int id)
         {
             var produto = await _uow.ProdutoRepository.GetByPredicateAsync(p => p.ProdutoId == id);
+
+            if (id <= 0)
+            {
+                return BadRequest("ID inválido");
+            }
 
             if (produto is null)
             {
